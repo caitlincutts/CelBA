@@ -1216,7 +1216,7 @@ def centroid_movement(wormcount, framecount, centroid_list):
                 centroid_distance = math.dist(centroid_list[worm][i], centroid_list[worm][i + 1])
                 this_worm_movement.append(round(centroid_distance,2))
 
-        this_worm_movement.append(0) #to make the list an approproiate length there will be an arbitrary 0 at the end as this is a between frame measure not on frame
+        this_worm_movement.append(None) #to make the list an approproiate length there will be an arbitrary 0 at the end as this is a between frame measure not on frame
         total_centroidmovement.append(this_worm_movement)
 
     return total_centroidmovement
