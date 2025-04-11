@@ -1,0 +1,67 @@
+// Start batch mode to suppress image display
+setBatchMode(true);
+
+// Get the folder containing the image stacks
+inputFolder = getDirectory("Choose the folder containing the image stacks");
+
+// Create a "CelBA Input" subfolder for saving the CelBA Input images within the input folder
+processedFolder = inputFolder + File.separator + "CelBA Input" + File.separator;
+File.makeDirectory(processedFolder); 									// Ensure the "CelBA Input" folder exists
+
+
+// Get a list of all files in the folder
+fileList = getFileList(inputFolder);
+
+
+// Loop through each file in the folder
+for (i = 0; i < fileList.length; i++) {
+    file = fileList[i];
+
+    // Skip files that are not TIFF images (or your specific image format)
+    if (endsWith(file, ".tif") || endsWith(file, ".ome.tif")) {
+        // Open the image stack
+        open(inputFolder + file);
+        
+        // Get the original image name
+        origName = getTitle(); 
+        
+        // Enhance contrast
+        run("Enhance Contrast...", "saturated=75 process_all");
+
+        // Perform Z-projection (Min Intensity)
+        run("Z Project...", "projection=[Min Intensity]");
+        projName = getTitle(); // Store the name of the Z-projected image
+
+        // Perform image subtraction using dynamic names
+        imageCalculator("Subtract create stack", origName, projName);
+        resultName = getTitle(); // Store the name of the subtraction result
+
+        // Select the result and make it binary
+        selectImage(resultName);
+        run("Make Binary", "method=Moments calculate black create");
+	
+	// Remove the file extension (e.g., ".tif") from the original image name
+	dotIndex = indexOf(origName, ".");  			// Find the index of the last dot (file extension)
+	notiffName = substring(origName, 0, dotIndex);
+
+	// Create a folder within this for this stack
+	thisStackFolder = processedFolder + File.separator + notiffName + File.separator;
+	File.makeDirectory(thisStackFolder);
+
+	// Add "Filtered_" at the beginning of the file name and a _ at the end before the 0001
+	newName = "Filtered_" + notiffName + "_";
+
+	// Save the processed image (binary image) in the "CelBA Input" folder as part of an image sequence
+	run("Image Sequence... ", "select=[" + thisStackFolder + "] dir=[" + thisStackFolder + "] format=JPEG name=" + newName);
+
+        // Close the current image to process the next one
+        close();
+    }
+}
+
+
+
+
+
+
+
